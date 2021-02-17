@@ -1,11 +1,11 @@
 #lang scribble/manual
 
-@require[@for-label[racket-project
+@require[@for-label[macro-as-type
                     racket/base]]
 
-@title{racket-project}
+@title{macro-as-type}
 @author{Lîm Tsú-thuàn}
 
-@defmodule[racket-project]
+@defmodule[macro-as-type]
 
 Package Description Here
