@@ -65,7 +65,11 @@
          (raise-syntax-error 'type-mismatched
                              (format "expected `~a`, but got `~a`" expect-ty actual-ty)
                              expr
-                             sub-expr))])))
+                             sub-expr))]))
+
+  (define-syntax-class type
+    (pattern x:id)
+    (pattern (-> p*:type ... r:type))))
 
 (define-syntax-parser app
   [(_ f:expr arg*:expr ...)
@@ -82,11 +86,11 @@
 
 (define-syntax-parser define-
   #:datum-literals (:)
-  [(_ name:id : ty exp)
+  [(_ name:id : ty:type exp)
    (unify (eval #'ty) (<-type #'exp)
           this-syntax #'exp)
    #'(define- {} name : ty exp)]
-  [(_ {generic*:id ...} name:id : ty exp)
+  [(_ {generic*:id ...} name:id : ty:type exp)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
                     ty))
           (<-type #'exp)
@@ -96,7 +100,16 @@
          (let ([generic* (FreeVar 'generic*)] ...)
            ty))
        (define name exp))]
-  [(_ {generic*:id ...} (name:id [p* : ty*] ...) : ty body)
+  [(_ (name:id [p* : ty*:type] ...) : ty:type body)
+   (unify (syntax->datum #'ty)
+          (<-type #'(let ([p* ty*] ...)
+                      body))
+          this-syntax #'body)
+   #'(begin
+       (define-for-syntax name (FuncType (list ty* ...) ty))
+       (define (name p* ...)
+         body))]
+  [(_ {generic*:id ...} (name:id [p* : ty*:type] ...) : ty:type body)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
                     ty))
           (<-type #'(let ([generic* (FreeVar 'generic*)] ...)
@@ -107,15 +120,6 @@
        (define-for-syntax name
          (let ([generic* (FreeVar 'generic*)] ...)
            (FuncType (list ty* ...) ty)))
-       (define (name p* ...)
-         body))]
-  [(_ (name:id [p* : ty*] ...) : ty body)
-   (unify (syntax->datum #'ty)
-          (<-type #'(let ([p* ty*] ...)
-                      body))
-          this-syntax #'body)
-   #'(begin
-       (define-for-syntax name (FuncType (list ty* ...) ty))
        (define (name p* ...)
          body))])
 
