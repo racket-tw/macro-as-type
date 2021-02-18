@@ -20,3 +20,5 @@ x
 
 (define {A} id2 : (A . -> . A)
   (λ (x) x))
+
+(id2 x)
