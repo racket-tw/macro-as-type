@@ -9,7 +9,9 @@
 
 (require syntax/parse/define
          (for-syntax racket/match
-                     racket/list))
+                     racket/list
+                     (rename-in racket/base
+                                [list racket-list])))
 
 (begin-for-syntax
   (struct FuncType (param-ty* ret-ty)
@@ -106,7 +108,7 @@
                       body))
           this-syntax #'body)
    #'(begin
-       (define-for-syntax name (FuncType (list ty* ...) ty))
+       (define-for-syntax name (FuncType (racket-list ty* ...) ty))
        (define (name p* ...)
          body))]
   [(_ {generic*:id ...} (name:id [p* : ty*:type] ...) : ty:type body)
@@ -119,7 +121,7 @@
    #'(begin
        (define-for-syntax name
          (let ([generic* (FreeVar 'generic*)] ...)
-           (FuncType (list ty* ...) ty)))
+           (FuncType (racket-list ty* ...) ty)))
        (define (name p* ...)
          body))])
 
