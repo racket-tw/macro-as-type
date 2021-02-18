@@ -85,9 +85,7 @@
   [(_ name:id : ty exp)
    (unify (eval #'ty) (<-type #'exp)
           this-syntax #'exp)
-   #'(begin
-       (define-for-syntax name ty)
-       (define name exp))]
+   #'(define- {} name : ty exp)]
   [(_ {generic*:id ...} name:id : ty exp)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
                     ty))
