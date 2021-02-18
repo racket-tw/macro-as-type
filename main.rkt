@@ -5,10 +5,11 @@
                      #%app)
          (rename-out [define- define]
                      [app #%app])
-         (for-syntax Number String Boolean Char))
+         (for-syntax Number String Boolean Char ->))
 
 (require syntax/parse/define
-         (for-syntax racket/match))
+         (for-syntax racket/match
+                     racket/list))
 
 (begin-for-syntax
   (struct FuncType (param-ty* ret-ty)
@@ -28,6 +29,9 @@
   (define String 'String)
   (define Boolean 'Boolean)
   (define Char 'Char)
+  (define (-> . arg*)
+    (let-values ([(param* ret) (split-at-right arg* 1)])
+      (FuncType param* (first ret))))
 
   (define (<-type stx)
     (syntax-parse stx
@@ -35,6 +39,10 @@
       [x:string 'String]
       [x:boolean 'Boolean]
       [x:char 'Char]
+      [(λ (p*:id ...) body)
+       (FuncType (map <-type (syntax->list #'(p* ...)))
+                 (<-type #'(let ([p* (FreeVar (gensym 'λ))] ...)
+                             body)))]
       [_ (eval stx)]))
 
   (define (unify expect-ty actual-ty [expr #f] [sub-expr #f]
@@ -43,7 +51,15 @@
       [{(? FreeVar?) t}
        (hash-set! subst-map expect-ty actual-ty)]
       [{t (? FreeVar?)}
-       (unify actual-ty expect-ty expr sub-expr)]
+       (unify actual-ty expect-ty expr sub-expr
+              #:subst-map subst-map)]
+      [{(FuncType p1* ret1) (FuncType p2* ret2)}
+       (map (λ (p1 p2)
+              (unify p1 p2 expr sub-expr
+                     #:subst-map subst-map))
+            p1* p2*)
+       (unify ret1 ret2 expr sub-expr
+              #:subst-map subst-map)]
       [{_ _}
        (unless (equal? expect-ty actual-ty)
          (raise-syntax-error 'type-mismatched
@@ -67,10 +83,20 @@
 (define-syntax-parser define-
   #:datum-literals (:)
   [(_ name:id : ty exp)
-   (unify (syntax->datum #'ty) (<-type #'exp)
+   (unify (eval #'ty) (<-type #'exp)
           this-syntax #'exp)
    #'(begin
        (define-for-syntax name ty)
+       (define name exp))]
+  [(_ {generic*:id ...} name:id : ty exp)
+   (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
+                    ty))
+          (<-type #'exp)
+          this-syntax #'exp)
+   #'(begin
+       (define-for-syntax name
+         (let ([generic* (FreeVar 'generic*)] ...)
+           ty))
        (define name exp))]
   [(_ {generic*:id ...} (name:id [p* : ty*] ...) : ty body)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)

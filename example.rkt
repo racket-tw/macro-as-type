@@ -12,3 +12,11 @@ x
   x)
 (id x)
 (id "S")
+
+(define id-Number2 : (Number . -> . Number)
+  (λ (x) x))
+
+(id-Number 1)
+
+(define {A} id2 : (A . -> . A)
+  (λ (x) x))
