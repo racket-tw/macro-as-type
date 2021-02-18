@@ -11,3 +11,4 @@ x
 (define {A} (id [x : A]) : A
   x)
 (id x)
+(id "S")
