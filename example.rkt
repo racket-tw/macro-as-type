@@ -1,14 +1,13 @@
 #lang macro-as-type
 
 (define x : Number 1)
+x
 (define (id-Number [x : Number]) : Number
   x)
-
-x
 (id-Number x)
+; error case: pass String to Number
+; > (id-Number "foo")
 
-(define s : String "foo")
-(id-Number s)
-
-#;(define {A} (id [x : A]) : A
+(define {A} (id [x : A]) : A
   x)
+(id x)

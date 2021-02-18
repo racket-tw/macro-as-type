@@ -14,7 +14,10 @@
 
   (define (<-type stx)
     (syntax-parse stx
-      [x:id (eval #'x)]
+      [x:number 'Number]
+      [x:string 'String]
+      [x:boolean 'Boolean]
+      [x:char 'Char]
       [_ (eval stx)]))
 
   (define (unify expect-ty actual-ty [expr #f] [sub-expr #f])
@@ -29,19 +32,28 @@
    (define f-ty (<-type #'f))
    (cond
      [(FuncType? f-ty)
-      (unify (FuncType-param-ty* f-ty) (map <-type (syntax->list #'(arg* ...)))
-             this-syntax #'f)]
+      (for ([param-ty (FuncType-param-ty* f-ty)]
+            [arg (syntax->list #'(arg* ...))])
+        (define arg-ty (<-type arg))
+        (unify param-ty arg-ty
+               this-syntax arg))]
      [else (error 'apply-on-non-function)])
    #'(f arg* ...)])
 
 (define-syntax-parser define-
   #:datum-literals (:)
   [(_ name:id : ty exp)
+   (unify (syntax->datum #'ty) (<-type #'exp)
+          this-syntax #'exp)
    #'(begin
        (define-for-syntax name 'ty)
        (define name exp))]
-  #;[(_ {generic*:id ...} (name:id [p* : ty*] ...) : ty body)
-   (unify (syntax->datum #'ty) (<-type #'body) this-syntax #'body)
+  [(_ {generic*:id ...} (name:id [p* : ty*] ...) : ty body)
+   (unify (syntax->datum #'ty)
+          (<-type #'(let ([generic* 'generic*] ...)
+                      (let ([p* 'ty*] ...)
+                        body)))
+          this-syntax #'body)
    #'(begin
        (define-for-syntax name (FuncType '(ty* ...) 'ty))
        (define (name p* ...)
