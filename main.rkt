@@ -97,8 +97,6 @@
 (define-syntax-parser define-
   #:datum-literals (:)
   [(_ name:id : ty:type exp)
-   (unify (eval #'ty) (<-type #'exp)
-          this-syntax #'exp)
    #'(define- {} name : ty exp)]
   [(_ {generic*:id ...} name:id : ty:type exp)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
