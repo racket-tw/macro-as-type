@@ -27,3 +27,7 @@ x
 (define y : Number
   (add1 2))
 y
+
+(claim {A} list : (A . -> . (List A)))
+(define l0 : (List Number)
+  (list 2))

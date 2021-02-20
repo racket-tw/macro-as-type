@@ -6,28 +6,21 @@
          (rename-out [define- define]
                      [app #%app])
          claim
-         (for-syntax Number String Boolean Char ->))
+         (for-syntax Number
+                     String
+                     Boolean
+                     Char
+                     ->
+                     List))
 
 (require syntax/parse/define
          (for-syntax racket/match
                      racket/list
                      (rename-in racket/base
-                                [list racket-list])))
+                                [list racket-list])
+                     "type.rkt"))
 
 (begin-for-syntax
-  (struct FuncType (param-ty* ret-ty)
-    #:methods gen:custom-write
-    [(define (write-proc f port mode)
-       (fprintf port "~a -> ~a"
-                (FuncType-param-ty* f)
-                (FuncType-ret-ty f)))]
-    #:transparent)
-  (struct FreeVar (val)
-    #:methods gen:custom-write
-    [(define (write-proc f port mode)
-       (fprintf port "?~a" (FreeVar-val f)))]
-    #:transparent)
-
   (define Number 'Number)
   (define String 'String)
   (define Boolean 'Boolean)
@@ -35,6 +28,9 @@
   (define (-> . arg*)
     (let-values ([(param* ret) (split-at-right arg* 1)])
       (FuncType param* (first ret))))
+
+  (define (List element-type)
+    (HigherType 'List (list element-type)))
 
   (define (check-app stx)
     (syntax-parse stx
@@ -142,7 +138,11 @@
 (define-syntax-parser claim
   #:datum-literals (:)
   [(_ name:id : ty:type)
-   #'(define-for-syntax name ty)])
+   #'(claim {} name : ty)]
+  [(_ {generic*:id ...} name:id : ty:type)
+   #'(define-for-syntax name
+       (let ([generic* (FreeVar 'generic*)] ...)
+         ty))])
 
 (module reader syntax/module-reader
   macro-as-type)
