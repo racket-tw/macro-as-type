@@ -54,7 +54,6 @@
       [x:char 'Char]
       [(λ (p*:id ...) body)
        (FuncType (map <-type (syntax->list #'(p* ...)))
-                 ; FIXME: let form should get it's infer, we cannot distinguish where we add the let binding
                  (<-type #'(let ([p* (FreeVar (gensym 'λ))] ...)
                              body)))]
       [(let b* e)
@@ -110,7 +109,6 @@
        (define name exp))]
   [(_ (name:id [p* : ty*:type] ...) : ty:type body)
    (unify (syntax->datum #'ty)
-          ; FIXME: let form should get it's infer, we cannot distinguish where we add the let binding
           (<-type #'(let ([p* ty*] ...)
                       body))
           this-syntax #'body)
@@ -121,7 +119,6 @@
   [(_ {generic*:id ...} (name:id [p* : ty*:type] ...) : ty:type body)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
                     ty))
-          ; FIXME: let form should get it's infer, we cannot distinguish where we add the let binding
           (<-type #'(let ([generic* (FreeVar 'generic*)] ...)
                       (let ([p* ty*] ...)
                         body)))
