@@ -35,3 +35,5 @@ l0
 
 (claim + : ((zero+ Number) . -> . Number))
 (+ 1 2 3 4)
+
+(claim asdklasfnasl : ((zero+ Number) Number . -> . (List Number)))
