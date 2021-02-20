@@ -36,4 +36,5 @@ l0
 (claim + : ((zero+ Number) . -> . Number))
 (+ 1 2 3 4)
 
-(claim asdklasfnasl : ((zero+ Number) Number . -> . (List Number)))
+; error case: semantic: only last parameter can expect arbitrarily arguments
+; > (claim asdklasfnasl : ((zero+ Number) Number . -> . (List Number)))
