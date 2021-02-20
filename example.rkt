@@ -22,3 +22,8 @@ x
   (λ (x) x))
 
 (id2 x)
+
+(claim add1 : (Number . -> . Number))
+(define y : Number
+  (add1 2))
+y

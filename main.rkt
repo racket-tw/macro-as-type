@@ -5,6 +5,7 @@
                      #%app)
          (rename-out [define- define]
                      [app #%app])
+         claim
          (for-syntax Number String Boolean Char ->))
 
 (require syntax/parse/define
@@ -35,6 +36,20 @@
     (let-values ([(param* ret) (split-at-right arg* 1)])
       (FuncType param* (first ret))))
 
+  (define (check-app stx)
+    (syntax-parse stx
+      [(f arg* ...)
+       (define f-ty (<-type #'f))
+       (cond
+         [(FuncType? f-ty)
+          (for ([param-ty (FuncType-param-ty* f-ty)]
+                [arg (syntax->list #'(arg* ...))])
+            (define arg-ty (<-type arg))
+            (unify param-ty arg-ty
+                   stx arg))
+          (FuncType-ret-ty f-ty)]
+         [else (error 'apply-on-non-function)])]))
+
   (define (<-type stx)
     (syntax-parse stx
       [x:number 'Number]
@@ -46,6 +61,10 @@
                  ; FIXME: let form should get it's infer, we cannot distinguish where we add the let binding
                  (<-type #'(let ([p* (FreeVar (gensym 'λ))] ...)
                              body)))]
+      [(let b* e)
+       (eval stx)]
+      [(f arg* ...)
+       (check-app #'(f arg* ...))]
       [_ (eval stx)]))
 
   (define (unify expect-ty actual-ty [expr #f] [sub-expr #f]
@@ -76,15 +95,7 @@
 
 (define-syntax-parser app
   [(_ f:expr arg*:expr ...)
-   (define f-ty (<-type #'f))
-   (cond
-     [(FuncType? f-ty)
-      (for ([param-ty (FuncType-param-ty* f-ty)]
-            [arg (syntax->list #'(arg* ...))])
-        (define arg-ty (<-type arg))
-        (unify param-ty arg-ty
-               this-syntax arg))]
-     [else (error 'apply-on-non-function)])
+   (check-app #'(f arg* ...))
    #'(f arg* ...)])
 
 (define-syntax-parser define-
@@ -127,6 +138,11 @@
            (FuncType (racket-list ty* ...) ty)))
        (define (name p* ...)
          body))])
+
+(define-syntax-parser claim
+  #:datum-literals (:)
+  [(_ name:id : ty:type)
+   #'(define-for-syntax name ty)])
 
 (module reader syntax/module-reader
   macro-as-type)
