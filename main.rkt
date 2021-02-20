@@ -38,8 +38,17 @@
        (define f-ty (<-type #'f))
        (cond
          [(FuncType? f-ty)
-          (for ([param-ty (FuncType-param-ty* f-ty)]
-                [arg (syntax->list #'(arg* ...))])
+          (define param-ty* (FuncType-param-ty* f-ty))
+          (define argument* (syntax->list #'(arg* ...)))
+          (unless (= (length param-ty*) (length argument*))
+            (raise-syntax-error 'arity
+                                (format "need ~a but get ~a"
+                                        (length param-ty*)
+                                        (length argument*))
+                                stx
+                                #'(arg* ...)))
+          (for ([param-ty param-ty*]
+                [arg argument*])
             (define arg-ty (<-type arg))
             (unify param-ty arg-ty
                    stx arg))
