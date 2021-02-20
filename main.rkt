@@ -77,6 +77,13 @@
             p1* p2*)
        (unify ret1 ret2 expr sub-expr
               #:subst-map subst-map)]
+      [{(HigherType name1 ty1*) (HigherType name2 ty2*)}
+       (unify name1 name2 expr sub-expr
+              #:subst-map subst-map)
+       (map (λ (t1 t2)
+              (unify t1 t2 expr sub-expr
+                     #:subst-map subst-map))
+            ty1* ty2*)]
       [{_ _}
        (unless (equal? expect-ty actual-ty)
          (raise-syntax-error 'type-mismatched
