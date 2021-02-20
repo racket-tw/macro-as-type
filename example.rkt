@@ -30,5 +30,8 @@ y
 
 (claim {A} list : (A . -> . (List A)))
 (define l0 : (List Number)
-  (list 2))
+  (list 1 2 3))
 l0
+
+(claim + : (Number . -> . Number))
+(+ 1 2 3 4)
