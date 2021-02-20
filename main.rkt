@@ -11,7 +11,8 @@
                      Boolean
                      Char
                      ->
-                     List))
+                     List
+                     @))
 
 (require syntax/parse/define
          (for-syntax racket/match
@@ -31,6 +32,8 @@
 
   (define (List element-type)
     (HigherType 'List (list element-type)))
+  (define (@ element-type)
+    (@Type element-type))
 
   (define (check-app stx)
     (syntax-parse stx
@@ -40,7 +43,8 @@
          [(FuncType? f-ty)
           (define param-ty* (FuncType-param-ty* f-ty))
           (define argument* (syntax->list #'(arg* ...)))
-          (unless (= (length param-ty*) (length argument*))
+          (unless (or (= (length param-ty*) (length argument*))
+                      (@Type? (last param-ty*)))
             (raise-syntax-error 'arity
                                 (format "need ~a but get ~a"
                                         (length param-ty*)
@@ -93,6 +97,11 @@
               (unify t1 t2 expr sub-expr
                      #:subst-map subst-map))
             ty1* ty2*)]
+      [{(@Type ty) t2}
+       (unify ty t2 expr sub-expr
+              #:subst-map subst-map)]
+      [{t1 (? @Type?)}
+       (unify actual-ty t1)]
       [{_ _}
        (unless (equal? expect-ty actual-ty)
          (raise-syntax-error 'type-mismatched

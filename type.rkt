@@ -2,7 +2,8 @@
 
 (provide (struct-out FuncType)
          (struct-out HigherType)
-         (struct-out FreeVar))
+         (struct-out FreeVar)
+         (struct-out @Type))
 
 (struct FuncType (param-ty* ret-ty)
   #:methods gen:custom-write
@@ -23,4 +24,10 @@
   #:methods gen:custom-write
   [(define (write-proc f port mode)
      (fprintf port "?~a" (FreeVar-val f)))]
+  #:transparent)
+; stands for arbitrarily parameters type, of course
+(struct @Type (ty)
+  #:methods gen:custom-write
+  [(define (write-proc t port mode)
+     (fprintf port "@~a" (@Type-ty t)))]
   #:transparent)
