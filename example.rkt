@@ -28,10 +28,10 @@ x
   (add1 2))
 y
 
-(claim {A} list : ((@ A) . -> . (List A)))
+(claim {A} list : ((zero+ A) . -> . (List A)))
 (define l0 : (List Number)
   (list 1 2 3))
 l0
 
-(claim + : ((@ Number) . -> . Number))
+(claim + : ((zero+ Number) . -> . Number))
 (+ 1 2 3 4)
