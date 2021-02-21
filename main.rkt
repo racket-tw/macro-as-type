@@ -41,7 +41,7 @@
 
   (define (check-app stx)
     (syntax-parse stx
-      [(f arg* ...)
+      [(f:expr arg*:expr ...)
        (define f-ty (<-type #'f))
        (cond
          [(FuncType? f-ty)
@@ -136,7 +136,7 @@
          (let ([generic* (FreeVar 'generic*)] ...)
            ty))
        (define name exp))]
-  [(_ (name:id [p* : ty*:type] ...) : ty:type body)
+  [(_ (name:id [p*:id : ty*:type] ...) : ty:type body)
    (unify (syntax->datum #'ty)
           (<-type #'(let ([p* ty*] ...)
                       body))
@@ -145,7 +145,7 @@
        (define-for-syntax name (FuncType (racket-list ty* ...) ty))
        (define (name p* ...)
          body))]
-  [(_ {generic*:id ...} (name:id [p* : ty*:type] ...) : ty:type body)
+  [(_ {generic*:id ...} (name:id [p*:id : ty*:type] ...) : ty:type body)
    (unify (eval #'(let ([generic* (FreeVar 'generic*)] ...)
                     ty))
           (<-type #'(let ([generic* (FreeVar 'generic*)] ...)
