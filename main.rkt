@@ -142,7 +142,7 @@
                       body))
           this-syntax #'body)
    #'(begin
-       (define-for-syntax name (FuncType (racket-list ty* ...) ty))
+       (define-for-syntax name (ty* ... . -> . ty))
        (define (name p* ...)
          body))]
   [(_ {generic*:id ...} (name:id [p*:id : ty*:type] ...) : ty:type body)
@@ -155,7 +155,7 @@
    #'(begin
        (define-for-syntax name
          (let ([generic* (FreeVar 'generic*)] ...)
-           (FuncType (racket-list ty* ...) ty)))
+           (ty* ... . -> . ty)))
        (define (name p* ...)
          body))])
 
