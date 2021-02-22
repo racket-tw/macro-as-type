@@ -47,6 +47,7 @@
          [(FuncType? f-ty)
           (define param-ty* (FuncType-param-ty* f-ty))
           (define argument* (syntax->list #'(arg* ...)))
+          (define subst-map (make-hash))
           (unless (or (= (length param-ty*) (length argument*))
                       (*Type? (last param-ty*)))
             (raise-syntax-error 'arity
@@ -55,11 +56,13 @@
                                         (length argument*))
                                 stx
                                 #'(arg* ...)))
+          ; FIXME: *Type cannot check arguments correctly since for-loop here
           (for ([param-ty param-ty*]
                 [arg argument*])
             (define arg-ty (<-type arg))
             (unify param-ty arg-ty
-                   stx arg))
+                   stx arg
+                   #:subst-map subst-map))
           (FuncType-ret-ty f-ty)]
          [else (error 'apply-on-non-function)])]))
 
@@ -83,7 +86,21 @@
                  #:subst-map [subst-map (make-hash)])
     (match* {expect-ty actual-ty}
       [{(? FreeVar?) t}
-       (hash-set! subst-map expect-ty actual-ty)]
+       (define existed? (hash-ref subst-map expect-ty #f))
+       (cond
+         [(not existed?)
+          (hash-set! subst-map expect-ty actual-ty)]
+         [(or (FreeVar? existed?)
+              (FreeVar? actual-ty))
+          (unify existed? actual-ty expr sub-expr
+                 #:subst-map subst-map)]
+         [else (raise-syntax-error
+                'type-mismatched
+                (format "expected ~a, but got ~a"
+                        existed?
+                        actual-ty)
+                expr
+                sub-expr)])]
       [{t (? FreeVar?)}
        (unify actual-ty expect-ty expr sub-expr
               #:subst-map subst-map)]
@@ -104,8 +121,9 @@
       [{(*Type ty) t2}
        (unify ty t2 expr sub-expr
               #:subst-map subst-map)]
-      [{t1 (? *Type?)}
-       (unify actual-ty t1)]
+      [{t1 (*Type ty)}
+       (unify ty t1 expr sub-expr
+              #:subst-map subst-map)]
       [{_ _}
        (unless (equal? expect-ty actual-ty)
          (raise-syntax-error 'type-mismatched
