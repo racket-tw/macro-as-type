@@ -61,7 +61,6 @@
                                             (length argument*))
                                     stx
                                     #'(arg* ...))))
-          ; FIXME: *Type cannot check arguments correctly since for-loop here
           (for ([param-ty param-ty*]
                 [arg argument*])
             (define arg-ty (<-type arg))
