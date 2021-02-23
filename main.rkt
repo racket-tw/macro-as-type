@@ -48,14 +48,19 @@
           (define param-ty* (FuncType-param-ty* f-ty))
           (define argument* (syntax->list #'(arg* ...)))
           (define subst-map (make-hash))
-          (unless (or (= (length param-ty*) (length argument*))
-                      (*Type? (last param-ty*)))
-            (raise-syntax-error 'arity
-                                (format "need ~a but get ~a"
-                                        (length param-ty*)
-                                        (length argument*))
-                                stx
-                                #'(arg* ...)))
+          (if (*Type? (last param-ty*))
+              (set! param-ty*
+                    (append param-ty*
+                            (make-list (- (length argument*) (length param-ty*))
+                                       (last param-ty*))))
+              (unless (or (= (length param-ty*) (length argument*))
+                          (*Type? (last param-ty*)))
+                (raise-syntax-error 'arity
+                                    (format "need ~a but get ~a"
+                                            (length param-ty*)
+                                            (length argument*))
+                                    stx
+                                    #'(arg* ...))))
           ; FIXME: *Type cannot check arguments correctly since for-loop here
           (for ([param-ty param-ty*]
                 [arg argument*])
@@ -90,17 +95,8 @@
        (cond
          [(not existed?)
           (hash-set! subst-map expect-ty actual-ty)]
-         [(or (FreeVar? existed?)
-              (FreeVar? actual-ty))
-          (unify existed? actual-ty expr sub-expr
-                 #:subst-map subst-map)]
-         [else (raise-syntax-error
-                'type-mismatched
-                (format "expected ~a, but got ~a"
-                        existed?
-                        actual-ty)
-                expr
-                sub-expr)])]
+         [else (unify existed? actual-ty expr sub-expr
+                 #:subst-map subst-map)])]
       [{t (? FreeVar?)}
        (unify actual-ty expect-ty expr sub-expr
               #:subst-map subst-map)]
