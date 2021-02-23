@@ -12,7 +12,7 @@
                      Char
                      ->
                      List
-                     zero+))
+                     @))
 
 (require syntax/parse/define
          (for-syntax racket/match
@@ -36,7 +36,7 @@
 
   (define (List element-type)
     (HigherType 'List (list element-type)))
-  (define (zero+ element-type)
+  (define (@ element-type)
     (*Type element-type))
 
   (define (check-app stx)

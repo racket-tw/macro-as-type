@@ -28,13 +28,13 @@ x
   (add1 2))
 y
 
-(claim {A} list : ((zero+ A) . -> . (List A)))
+(claim {A} list : ((@ A) . -> . (List A)))
 (define l0 : (List Number)
   (list 1 2 "s"))
 l0
 (list 1 2 "s")
 
-(claim + : ((zero+ Number) . -> . Number))
+(claim + : ((@ Number) . -> . Number))
 (+ 1 2 3 4)
 
 ; error case: semantic: only last parameter can expect arbitrarily arguments
