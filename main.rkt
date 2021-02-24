@@ -28,8 +28,7 @@
   (define Char 'Char)
   (define (-> . arg*)
     (let-values ([(param* ret) (split-at-right arg* 1)])
-      (for ([param-ty (drop-right param* 1)]
-            [p param*])
+      (for ([param-ty (drop-right param* 1)])
         (when (*Type? param-ty)
           (error 'semantic "only last parameter can expect arbitrarily arguments")))
       (FuncType param* (first ret))))
