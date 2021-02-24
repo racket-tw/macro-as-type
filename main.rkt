@@ -91,11 +91,10 @@
     (match* {expect-ty actual-ty}
       [{(? FreeVar?) t}
        (define existed? (hash-ref subst-map expect-ty #f))
-       (cond
-         [(not existed?)
-          (hash-set! subst-map expect-ty actual-ty)]
-         [else (unify existed? actual-ty expr sub-expr
-                 #:subst-map subst-map)])]
+       (if (not existed?)
+           (hash-set! subst-map expect-ty actual-ty)
+           (unify existed? actual-ty expr sub-expr
+                  #:subst-map subst-map))]
       [{t (? FreeVar?)}
        (unify actual-ty expect-ty expr sub-expr
               #:subst-map subst-map)]

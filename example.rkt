@@ -28,14 +28,15 @@ x
   (add1 2))
 y
 
+; error case: semantic: only last parameter can expect arbitrarily arguments
+; > (claim asdklasfnasl : ((@ Number) Number . -> . (List Number)))
 (claim {A} list : ((@ A) . -> . (List A)))
 (define l0 : (List Number)
   (list 1 2 3))
 l0
 (list 1 2 3)
+; error case: type-mismatched: expected `Number`, but got `String` in: "s"
+; > (list 1 "s" 3)
 
 (claim + : ((@ Number) . -> . Number))
 (+ 1 2 3 4)
-
-; error case: semantic: only last parameter can expect arbitrarily arguments
-; > (claim asdklasfnasl : ((zero+ Number) Number . -> . (List Number)))
