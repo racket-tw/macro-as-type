@@ -17,8 +17,6 @@
 (require syntax/parse/define
          (for-syntax racket/match
                      racket/list
-                     (rename-in racket/base
-                                [list racket-list])
                      "type.rkt"))
 
 (begin-for-syntax
