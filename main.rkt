@@ -50,8 +50,7 @@
                     (append param-ty*
                             (make-list (- (length argument*) (length param-ty*))
                                        (last param-ty*))))
-              (unless (or (= (length param-ty*) (length argument*))
-                          (*Type? (last param-ty*)))
+              (unless (= (length param-ty*) (length argument*))
                 (raise-syntax-error 'arity
                                     (format "need ~a but get ~a"
                                             (length param-ty*)
