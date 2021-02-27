@@ -42,21 +42,24 @@
        (define f-ty (<-type #'f))
        (cond
          [(FuncType? f-ty)
-          (define param-ty* (FuncType-param-ty* f-ty))
+          (define-values (param-ty* rest)
+            (split-at-right (FuncType-param-ty* f-ty) 1))
+          (define last-param-ty (car rest))
           (define argument* (syntax->list #'(arg* ...)))
           (define subst-map (make-hash))
-          (if (*Type? (last param-ty*))
-              (set! param-ty*
+          (set! param-ty*
+                (if (*Type? last-param-ty)
                     (append param-ty*
                             (make-list (- (length argument*) (length param-ty*))
-                                       (last param-ty*))))
-              (unless (= (length param-ty*) (length argument*))
-                (raise-syntax-error 'arity
-                                    (format "need ~a but get ~a"
-                                            (length param-ty*)
-                                            (length argument*))
-                                    stx
-                                    #'(arg* ...))))
+                                       (*Type-ty last-param-ty)))
+                    (if (= (add1 (length param-ty*)) (length argument*))
+                        (FuncType-param-ty* f-ty)
+                        (raise-syntax-error 'arity
+                                            (format "need ~a but get ~a"
+                                                    (add1 (length param-ty*))
+                                                    (length argument*))
+                                            stx
+                                            #'(arg* ...)))))
           (for ([param-ty param-ty*]
                 [arg argument*])
             (define arg-ty (<-type arg))
@@ -108,12 +111,6 @@
               (unify t1 t2 expr sub-expr
                      #:subst-map subst-map))
             ty1* ty2*)]
-      [{(*Type ty) t2}
-       (unify ty t2 expr sub-expr
-              #:subst-map subst-map)]
-      [{t1 (*Type ty)}
-       (unify ty t1 expr sub-expr
-              #:subst-map subst-map)]
       [{_ _}
        (unless (equal? expect-ty actual-ty)
          (raise-syntax-error 'type-mismatched
